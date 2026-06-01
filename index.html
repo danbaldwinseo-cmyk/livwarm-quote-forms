@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>LivWarm — Quote Flow Strategy</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800;900&display=swap');
+:root{
+  --bg:#0f0f0f;
+  --red:#4FA4FF;--red2:#00d4ff;
+  --orange:#8A4DFF;
+  --white:#fff;
+  --muted:rgba(255,255,255,0.55);
+  --card:rgba(255,255,255,0.06);
+  --cb:rgba(255,255,255,0.12);
+  --grad:linear-gradient(90deg,#4FA4FF,#8A4DFF);
+  --box:1440px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--white);width:100vw;height:100vh}
+.deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .45s ease;overflow:hidden;display:flex;flex-direction:column}
+.slide.active{opacity:1;pointer-events:all}
+.slide.amb::before{content:'';position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 60% 50% at 80% 20%,rgba(232,69,60,.07) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 20% 80%,rgba(255,124,62,.06) 0%,transparent 70%);pointer-events:none}
+.slide.amb::after{content:'';position:absolute;inset:0;z-index:0;background-image:linear-gradient(rgba(232,69,60,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(232,69,60,.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.si{position:relative;z-index:1;display:flex;flex-direction:column;width:100%;height:100%}
+.box{width:100%;max-width:var(--box);margin:0 auto;padding:22px 60px 40px;display:flex;flex-direction:column;height:100%}
+.tb{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;margin-bottom:10px}
+.tb-l{display:flex;align-items:center;gap:16px}
+.ll img{height:30px;object-fit:contain}
+.ls{width:1px;height:24px;background:rgba(255,255,255,.2)}
+.sl{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.content{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:0}
+.gt{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.ey{font-size:16px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:6px}
+h2{font-size:clamp(22px,2.4vw,36px);font-weight:800;line-height:1.15}
+h3{font-size:clamp(14px,1.35vw,18px);font-weight:700;line-height:1.3}
+.bt{font-size:clamp(14px,1.15vw,16px);font-weight:400;line-height:1.65;color:rgba(255,255,255,.8)}
+.bt strong{color:var(--white);font-weight:700}
+.cb2{font-size:14px;color:rgba(255,255,255,.65);line-height:1.55}
+.ct{font-size:15px;font-weight:800;margin-bottom:4px;transition:color .3s}
+.sm{font-size:13px;color:rgba(255,255,255,.6);line-height:1.5}
+.gl{height:1px;background:var(--grad);opacity:.35;margin:7px 0;flex-shrink:0}
+.card{background:var(--card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--cb);border-radius:14px;padding:13px 17px;transition:all .3s ease}
+.card:hover{border-color:transparent;background-image:linear-gradient(rgba(10,10,10,.9),rgba(10,10,10,.9)),linear-gradient(135deg,#E8453C,#ff7c3e);background-origin:border-box;background-clip:padding-box,border-box;box-shadow:-6px -6px 24px rgba(232,69,60,.15),6px 6px 24px rgba(255,124,62,.15)}
+.card:hover .ct{color:var(--red2)!important}
+.sp{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tp{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.four{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:11px}
+.five{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px}
+.callout-green{border-left:3px solid #22c55e;border-radius:0 12px 12px 0;background:rgba(34,197,94,.07);padding:13px 17px}
+.callout-red{border-left:3px solid var(--red);border-radius:0 12px 12px 0;background:rgba(232,69,60,.08);padding:13px 17px}
+.callout-amber{border-left:3px solid #f59e0b;border-radius:0 12px 12px 0;background:rgba(245,158,11,.07);padding:13px 17px}
+.callout-blue{border-left:3px solid #4FA4FF;border-radius:0 12px 12px 0;background:rgba(79,164,255,.07);padding:13px 17px}
+.callout-orange{border-left:3px solid var(--orange);border-radius:0 12px 12px 0;background:rgba(255,124,62,.08);padding:13px 17px}
+.blist{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.bitem{display:flex;gap:10px;align-items:flex-start}
+.bdot{width:7px;height:7px;border-radius:50%;background:var(--grad);margin-top:6px;flex-shrink:0}
+.btxt{font-size:clamp(13px,1.05vw,15px);line-height:1.6;color:rgba(255,255,255,.8)}
+.btxt strong{color:var(--white)}
+.stag{display:inline-flex;align-items:center;background:var(--grad);color:white;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:3px 12px;border-radius:999px;margin-bottom:8px}
+.nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;z-index:100;background:rgba(0,0,0,.6);backdrop-filter:blur(12px);padding:7px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.1)}
+.nb{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:var(--muted);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:all .25s ease}
+.nb:hover{color:var(--white);border-color:transparent;background:linear-gradient(rgba(10,10,10,.9),rgba(10,10,10,.9)) padding-box,linear-gradient(135deg,#E8453C,#ff7c3e) border-box;box-shadow:0 0 14px rgba(232,69,60,.4),0 0 28px rgba(255,124,62,.2)}
+.nd{display:flex;gap:6px;align-items:center}
+.ndot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:all .25s}
+.ndot.active{background:var(--red);transform:scale(1.3)}
+.nc{font-size:12px;font-weight:700;color:var(--muted);min-width:36px;text-align:center}
+.a1{animation:fadeUp .5s ease both}
+.a2{animation:fadeUp .5s ease .12s both}
+.a3{animation:fadeUp .5s ease .22s both}
+.a4{animation:fadeUp .5s ease .32s both}
+.a5{animation:fadeUp .5s ease .42s both}
+.a6{animation:fadeUp .5s ease .52s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.num-badge{width:28px;height:28px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0}
+.num-badge.green{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.num-badge.amber{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.stat-val{font-size:clamp(28px,3vw,44px);font-weight:900;line-height:1}
+.stat-lbl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.tag-pill{display:inline-flex;align-items:center;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.tag-green{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+.tag-red{background:rgba(232,69,60,.15);color:var(--red2);border:1px solid rgba(232,69,60,.3)}
+.tag-amber{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.tag-blue{background:rgba(79,164,255,.15);color:#4FA4FF;border:1px solid rgba(79,164,255,.3)}
+.vs-row{display:grid;grid-template-columns:1fr 40px 1fr;gap:0;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.vs-row:last-child{border-bottom:none}
+.vs-l{font-size:13px;color:rgba(255,255,255,.7);line-height:1.4}
+.vs-r{font-size:13px;color:rgba(255,255,255,.7);line-height:1.4;text-align:right}
+.vs-m{text-align:center;font-size:10px;font-weight:900;color:var(--muted)}
+.vs-l strong,.vs-r strong{color:var(--white)}
+.step-block{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.step-block:last-child{border-bottom:none}
+.step-n{width:24px;height:24px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;margin-top:1px}
+.step-body{flex:1}
+.step-title{font-size:14px;font-weight:800;color:var(--white);margin-bottom:2px}
+.step-desc{font-size:12px;color:rgba(255,255,255,.6);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ═══ S1: TITLE ═══ -->
+<div class="slide active" id="s1">
+  <div class="si" style="justify-content:center;align-items:center;text-align:center;padding:60px">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(232,69,60,.08) 0%,transparent 65%),radial-gradient(ellipse 40% 40% at 70% 75%,rgba(255,124,62,.06) 0%,transparent 60%);pointer-events:none"></div>
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(232,69,60,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(232,69,60,.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none"></div>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;max-width:900px">
+      <div class="a1" style="margin-bottom:36px">
+        <img src="data:image/webp;base64,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" alt="LivWarm" style="height:52px">
+      </div>
+      <div class="a2" style="height:1px;width:60%;background:var(--grad);opacity:.3;margin-bottom:28px"></div>
+      <p class="a2 ey" style="margin-bottom:10px">Quote Flow — Strategy &amp; Build Plan</p>
+      <h2 class="a3" style="font-size:clamp(28px,3.2vw,52px);font-weight:900;margin-bottom:14px">
+        Rebuilding the Quote Flows.<br><span class="gt">Better than UKEM. Built to convert.</span>
+      </h2>
+      <p class="a4 bt" style="max-width:560px;text-align:center;color:rgba(255,255,255,.5)">A full critique of the current UKEM &amp; LivWarm flows, what we're borrowing, what we're improving, and the exact build plan — solar first.</p>
+      <div class="a5" style="height:1px;width:40%;background:var(--grad);opacity:.2;margin:28px auto 0"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ S2: WHAT WE'VE SEEN ═══ -->
+<div class="slide amb" id="s2"><div class="si"><div class="box">
+  <div class="tb a1">
+    <div class="tb-l">
+      <div class="ll"><img src="data:image/webp;base64,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" alt="LivWarm" style="height:26px"></div>
+    </div>
+    <div class="sl">The Starting Point</div>
+  </div>
+  <div class="content">
+    <p class="ey a1">What we reviewed</p>
+    <h2 class="a2">Four existing flows. Two competing apps.<br><span class="gt">One clear direction.</span></h2>
+    <div class="gl a2"></div>
+    <div class="a3 sp" style="gap:16px;margin-top:10px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="callout-red">
+          <p class="ct" style="color:var(--red2);margin-bottom:6px">The current LivWarm forms — deals.livwarm.co.uk</p>
+          <p class="sm">Built in Cornerstone / WordPress. Step-based wizard with branching logic, postcode lookup, satellite map, product selection, finance calculator and contact capture. Google Maps API already active. GTM firing. But the execution falls short — broken placeholder copy, no trust signals early in the journey, the product presentation screen has no visible price above the fold, and the mascot/celebratory tone is mismatched for a £7,000+ purchase.</p>
+        </div>
+        <div class="callout-amber">
+          <p class="ct" style="color:#f59e0b;margin-bottom:6px">The UKEM app — app.ukem.co.uk</p>
+          <p class="sm">A React single-page application — the same architecture we'll use. Clean, functional and well-structured. 9 steps covering qualification, property details, electricity usage, battery placement, EV ownership, address/roof confirmation, product recommendation, upsell modal, contact capture, date selection and payment. The flow is thorough but cold — no trust signals, clinical design, financial data buried below the fold, payment screen premature for this price point.</p>
+        </div>
+        <div class="callout-blue">
+          <p class="ct" style="color:#4FA4FF;margin-bottom:6px">Common architecture confirmed</p>
+          <p class="sm">Both the UKEM app and the recommended LivWarm rebuild use React SPAs embedded in a page. The UKEM URL structure (<span style="font-family:monospace;color:rgba(255,255,255,.8)">?product=solar</span>) confirms a single app handling all four products via routing — exactly the pattern we'll follow. The Google Maps Satellite API is already licensed and in use on LivWarm.</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <p style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">The four flows reviewed</p>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <p class="ct" style="margin-bottom:0">Solar &amp; Battery</p>
+            <span class="tag-red">Priority 1</span>
+          </div>
+          <p class="sm">Most complex flow. Roof type, electricity usage, battery placement, EV qualification, satellite map, multi-tier product selection, finance calculator. The upsell modal (BUS grant / panel upgrade / warranty) is a key revenue mechanism.</p>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <p class="ct" style="margin-bottom:0">Boiler Upgrade Grant</p>
+            <span class="tag-red">Priority 2</span>
+          </div>
+          <p class="sm">Grant-led flow. Must lead with the £7,500 BUS grant hook. Eligibility qualification (property type, current heating system, EPC awareness) before any pricing. The grant framing makes the quote feel like a reward rather than a sales pitch.</p>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <p class="ct" style="margin-bottom:0">EV Charger</p>
+            <span class="tag-amber">Priority 3</span>
+          </div>
+          <p class="sm">Simpler qualifier. Off-street parking, meter location, cable run distance. Dead-end for no driveway must be warm — redirect rather than reject.</p>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <p class="ct" style="margin-bottom:0">Heat Pump</p>
+            <span class="tag-amber">Priority 4</span>
+          </div>
+          <p class="sm">Shares BUS grant eligibility logic with boiler flow. Template reuse after solar and boiler are built makes this relatively quick to complete.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- ═══ S3: WHAT UKEM DOES WELL ═══ -->
+<div class="slide amb" id="s3"><div class="si"><div class="box">
+  <div class="tb a1">
+    <div class="tb-l"><div class="ll"><img src="data:image/webp;base64,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" alt="LivWarm" style="height:26px"></div></div>
+    <div class="sl">UKEM — What Works</div>
+  </div>
+  <div class="content">
+    <p class="ey a1">Features worth replicating</p>
+    <h2 class="a2">UKEM has solved some real problems.<br><span class="gt">We borrow the best, then go further.</span></h2>
+    <div class="gl a2"></div>
+    <div class="a3 sp" style="gap:14px;margin-top:10px">
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div class="num-badge num-badge green">✓</div>
+            <div>
+              <p class="ct" style="color:#22c55e">Answer breadcrumb trail</p>
+              <p class="sm">Previous answers stack above each new question as pill badges. Reassures users their inputs are recorded and lets them see their journey at a glance without going back. The current LivWarm forms have nothing equivalent.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div class="num-badge num-badge green">✓</div>
+            <div>
+              <p class="ct" style="color:#22c55e">Friction reducers on hard questions</p>
+              <p class="sm">"I'm not sure" as a valid answer on battery location removes a common abandonment point. "Apply national kWh average (4,100 / 26.35p)" on the electricity usage screen is brilliant — lets users proceed without hunting for their bill. Both must be replicated.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div class="num-badge num-badge green">✓</div>
+            <div>
+              <p class="ct" style="color:#22c55e">Help modal with annotated bill image</p>
+              <p class="sm">The "How to find your rates" modal shows a real EDF bill with arrows pointing to the unit rate and annual usage fields. More effective than any amount of copy. Worth replicating with a more brand-consistent design.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div class="num-badge num-badge green">✓</div>
+            <div>
+              <p class="ct" style="color:#22c55e">Satellite roof map confirmation</p>
+              <p class="sm">Dropping a pin on your actual roof via Google Maps Satellite makes the quote feel real and property-specific. The Google Maps API is already licensed on LivWarm — no additional cost to include this. A moveable pin adds complexity for minimal benefit; a static confirmed view is sufficient.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div class="num-badge num-badge green">✓</div>
+            <div>
+              <p class="ct" style="color:#22c55e">EV question within the solar flow</p>
+              <p class="sm">Asking "Do you have an electric vehicle?" inside the solar journey qualifies leads for the EV charger product simultaneously. Smart cross-sell with no added friction.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div class="num-badge num-badge green">✓</div>
+            <div>
+              <p class="ct" style="color:#22c55e">Post-conversion upsell modal</p>
+              <p class="sm">The "Enhance Your System" modal after product selection offers panel upgrade, extended warranty and the BUS heat pump grant. Keeps the primary flow clean while capturing upsell revenue. The orange grant highlight card converts the solar journey into a heat pump lead at zero friction.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div class="num-badge num-badge green">✓</div>
+            <div>
+              <p class="ct" style="color:#22c55e">QR code for property photos</p>
+              <p class="sm">After booking confirmation, a QR code links to a photo submission flow. Defers photo collection to post-conversion, avoids mid-form friction, sends link via email/SMS, gives 14 days. Genuinely clever — and it improves lead quality for the installer without impeding the conversion.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div class="num-badge num-badge green">✓</div>
+            <div>
+              <p class="ct" style="color:#22c55e">Date picker with honest expectations</p>
+              <p class="sm">"Our team will confirm availability after your technical review" sets honest expectations while still capturing a preferred date as a micro-commitment. The phrasing reduces post-submission anxiety without underselling the commitment.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- ═══ S4: WHAT UKEM GETS WRONG ═══ -->
+<div class="slide amb" id="s4"><div class="si"><div class="box">
+  <div class="tb a1">
+    <div class="tb-l"><div class="ll"><img src="data:image/webp;base64,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" alt="LivWarm" style="height:26px"></div></div>
+    <div class="sl">UKEM — What to Improve On</div>
+  </div>
+  <div class="content">
+    <p class="ey a1">Where LivWarm can clearly do better</p>
+    <h2 class="a2">Functional but cold. Data-rich but buried.<br><span class="gt">Every weakness is an opportunity.</span></h2>
+    <div class="gl a2"></div>
+    <div class="a3 sp" style="gap:14px;margin-top:10px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="callout-red">
+          <p class="ct" style="color:var(--red2);margin-bottom:4px">No trust signals anywhere in the early flow</p>
+          <p class="sm">Not one MCS badge, accreditation logo or partner brand appears until the booking summary page — step 6 of 9. For a £9,000+ purchase this is a serious omission. Trust must be established from step 1, not after the user has already committed.</p>
+        </div>
+        <div class="callout-red">
+          <p class="ct" style="color:var(--red2);margin-bottom:4px">The financial data appears too late</p>
+          <p class="sm">£40,931 vs £14,823 over 20 years. £26,108 total saving. 8-year break-even. These are the most persuasive numbers in the entire flow — and they appear below the fold on step 6, after the user has already committed to a product. They should be above the fold on the quote presentation screen where the buying decision is actually made.</p>
+        </div>
+        <div class="callout-red">
+          <p class="ct" style="color:var(--red2);margin-bottom:4px">Quote screen layout fights itself</p>
+          <p class="sm">The two-column layout on the product screen places financial analysis left and product tiers right, with no clear reading hierarchy. The satellite map thumbnail wastes a third of the above-the-fold area with no value at this stage. The tier selector (Recommended / Performance / Essential / Custom) looks like a contents list — not clickable product cards.</p>
+        </div>
+        <div class="callout-red">
+          <p class="ct" style="color:var(--red2);margin-bottom:4px">Price is too small and too passive</p>
+          <p class="sm">£9,095 appears in small header text and again quietly in the card. For a purchase this size, the price should be displayed confidently and in context — "£9,095 or from £97/month" should be a headline, not a detail. Hiding the price suggests uncertainty about it.</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="callout-amber">
+          <p class="ct" style="color:#f59e0b;margin-bottom:4px">Design is clinical and cold</p>
+          <p class="sm">Plain white backgrounds, thin blue progress line at the very top of the screen, no visual warmth anywhere. The UKEM flow looks like internal software. LivWarm has a genuinely warm brand — the rebuild should feel like LivWarm, not a generic SaaS tool.</p>
+        </div>
+        <div class="callout-amber">
+          <p class="ct" style="color:#f59e0b;margin-bottom:4px">Contact details collected in a modal</p>
+          <p class="sm">Floating a contact form as an overlay on top of the quote screen strips away all visual context at the exact moment the user is committing their personal details. A dedicated full-screen step with a compact product/price summary visible at the top performs better.</p>
+        </div>
+        <div class="callout-amber">
+          <p class="ct" style="color:#f59e0b;margin-bottom:4px">Payment screen is premature</p>
+          <p class="sm">Presenting a Stripe checkout for £9,095 on a first visit — before a survey, a conversation, or a confirmed date — looks like high-pressure sales, not a professional service. The commitment LivWarm wants is a date in the diary. The payment option should be removed from the initial flow entirely.</p>
+        </div>
+        <div class="callout-amber">
+          <p class="ct" style="color:#f59e0b;margin-bottom:4px">Weak card interaction states</p>
+          <p class="sm">Default cards are flat. Hover raises the shadow. Selected fills blue. The interaction lacks physical satisfaction — it doesn't feel like pressing a button. The LivWarm rebuild will use a raised-by-default, sinks-on-press, highlights-on-select interaction that is noticeably more tactile and premium.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- ═══ S5: THE NEW QUOTE SCREEN ═══ -->
+<div class="slide amb" id="s5"><div class="si"><div class="box">
+  <div class="tb a1">
+    <div class="tb-l"><div class="ll"><img src="data:image/webp;base64,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" alt="LivWarm" style="height:26px"></div></div>
+    <div class="sl">Redesigning the Quote Screen</div>
+  </div>
+  <div class="content">
+    <p class="ey a1">The most important screen in the flow</p>
+    <h2 class="a2">Everything the user needs to decide.<br><span class="gt">Above the fold. No scrolling required.</span></h2>
+    <div class="gl a2"></div>
+    <div class="a3 sp" style="gap:16px;margin-top:10px">
+      <div>
+        <p style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:10px">New quote screen — reading order</p>
+        <div class="blist">
+          <div class="step-block">
+            <div class="step-n">1</div>
+            <div class="step-body">
+              <div class="step-title">The hook — personalised recommendation</div>
+              <div class="step-desc">"Based on your home, we recommend this system." Package name, panel count, battery, and price as a headline — large and confident. "£9,095 or from £97/month" is a statement of value, not a detail to find.</div>
+            </div>
+          </div>
+          <div class="step-block">
+            <div class="step-n">2</div>
+            <div class="step-body">
+              <div class="step-title">The numbers that matter</div>
+              <div class="step-desc">Three big scannable figures: monthly saving, 20-year total saving, break-even year. Positioned immediately below the price. Readable in two seconds. This is where the decision is made — these numbers do the selling.</div>
+            </div>
+          </div>
+          <div class="step-block">
+            <div class="step-n">3</div>
+            <div class="step-body">
+              <div class="step-title">The tier selector — four interactive cards</div>
+              <div class="step-desc">Essential / Recommended / Performance / Custom. Each is a fully interactive card using the raised-default, sinks-on-press, highlights-on-select interaction pattern. Selecting a tier updates the price and savings figures live. No collapsed rows, no ambiguous "Compare" links.</div>
+            </div>
+          </div>
+          <div class="step-block">
+            <div class="step-n">4</div>
+            <div class="step-body">
+              <div class="step-title">Trust and continuation</div>
+              <div class="step-desc">MCS Certified, HIES badge, partner logos (Aiko, Fox ESS, Tesla), then a single prominent "Continue with this system" button. No satellite map. No competing columns.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="callout-orange">
+          <p class="ct" style="color:var(--orange);margin-bottom:6px">Why the map comes off the quote screen</p>
+          <p class="sm">The satellite view earns its place in the address confirmation step — it makes the quote feel property-specific and real. On the quote screen it serves no purpose. The user confirmed their address one step ago. Removing it recovers a third of the above-the-fold area and allows all decision-critical content to sit in a single view without scrolling.</p>
+        </div>
+        <div class="callout-blue">
+          <p class="ct" style="color:#4FA4FF;margin-bottom:6px">Live price update as tiers are selected</p>
+          <p class="sm">When the user switches from Recommended to Essential, the price headline, monthly figure, and savings numbers all update simultaneously with a smooth transition. This makes the trade-off tangible and immediate — the user can feel what they're gaining or saving by choosing a different tier. No page reload, no navigation away from the screen.</p>
+        </div>
+        <div class="callout-green">
+          <p class="ct" style="color:#22c55e;margin-bottom:6px">The commitment step — before contact details</p>
+          <p class="sm">Before asking for name, email and phone, we show a "Confirm your selection" micro-step — a brief summary of what they've chosen with a single "This looks right — get my full quote" button. This micro-commitment anchors the user to their choice and significantly improves lead quality. People who confirm actively are higher-intent than people who passively fill in a form.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- ═══ S6: CARD INTERACTION DESIGN ═══ -->
+<div class="slide amb" id="s6"><div class="si"><div class="box">
+  <div class="tb a1">
+    <div class="tb-l"><div class="ll"><img src="data:image/webp;base64,UklGRgATAABXRUJQVlA4WAoAAAAQAAAAjwEAVwAAQUxQSBYIAAABZ6CgjSQ1dQYYnz8iAhA59/tvSiIo7/+/tm0kmXpUOszNzXgnj3nLmDd1zMzMTOX2mS9l8inp2LcGnsW+ovT9q6zv5/MVJRpcIvovUbLdum0OJ2SRvi4BEIQUf4HzH97wb6+UBC9F95YES9LxSoHmRKRRCrwsIs+WhC1TsyTscjBfEonNcrDLwfTHIsosA3vjNf3b77jzMdv6RSQb03/9zcrGURB3r0W9vm2JiGX6X3w5HRWTHZG86ybj071f7d17N2d3rKTCdE1l3FMsDkvKcT+6ORSRftWiFV8K9WQsiEj0HZcY9kX+Igwlkv79xWoXosSYZnOSiI+Uh5PxsdLsMoJYSNtFVPk6t1AMJfWop+JAzHvJCMSU+ZEhsRWqLRWJIErP/alYjPmOYzrIdPX9pnvzx9pWejNjkifsUswsyQqd7kViIJKBmYZtMc+l2dANjJFxmy8oxxetXcjATEMQc0lCFq0j6yvZNWRZFaYi0QyzoO2lwB+JdGsJ2aYkE+ajKV3PyIpLCgDfViZmCpyX13r3pGqouhVDRtvICmmsO+5Pg3PblW5SWmpHNesEG9vt19YdbUrmJ75hHNMbrCTx1h0dl5H5xX6poeJckhX6b64r9EbzYcl43Bgb1/FpdU8Umn0h0v+TjGtzYj+PdUt3t0ZWXF9kvvN2IO/NkeFkTMJWIVAiNld5VmwiR3hmxk3EljmXSLh8bjM78XNXzLlpOcdpjg1UCUjD/OPTcUHr8Xi4RKGS4elaWKXO/K51Dm/6aprLXt9z/PhXT5xhlqdH9xw/AaIf2f3Hn3/ue9LTPLonVnGXl4rvpj7YbhgXT8ngeSHQnjKLoBIqddo+PhdACgf0Tnv1d73Pn6/mNHeFZCufrWlHvF1RKkJUYWGtTrzQcWk2NK3b9AD8JyPakS6pg/jRe1Ru21VfpBB0r6G/PiKCfEpc88xU6StExTuegblOlxwwu5sluLMHrHfTyjYttGl3qny5dSJkdM8i7BRCQDu2i5wWje69BtaqluwxSjvGH71E+5/6UrdieNhprgod33pAEBL8FaP8HRRGt8axVrVkD1ynRstbN7IWas1IaszD59o5J3IxsCKElw1h10y4imc5xgpL5mB7YxQPXkW0sM7MRBo0K+IaYHf08GzMWDH4SzjdKsVe4+hkDq/fLPxUDSTKdJOX0qyAlyCS4EQdFCSuf6nGJZQEaxyezPF1+aCd6HOkQ91E+p9nX4IUfAlv5hWg1wPe1ekOXycqzja8fNYUpor3KHwlS9bAY+X1vC9NpuAnfXjhGGOiSOfJO27//G+B7CdyvrnzPHzc//muK27fFSHfXHXF7bsj/VjFoCtdMgbfO/HnBBZ91v8swsuS06D2I/11oeoVJoJ6P9LxrJBNdM6EO4AJaur3xfUEtI1O6WDGGCWxFaE+LJ/khA5A0BDO1KLiWr2FT0TnEgSjfzZzy8UYVBCkFKmtXJKA5yy/ZAypGOzB2WXnzyMVcwSRw0wZ8nPkjzCXlvTtwZRX8NUY0YnqHkjAs9ZPKzLHH5Ps2o+pTbwK8r5TymdZ/fQnRii3aW9jmiR5Cg8gU2Kgxr6XZMoX2PMs6+BiwEEN7E7VHu/HrPDoywHL2yN24hb43pshPGWwy61dPBZRgENKP/Eq+vQlFTnMCpL5GpZL/hg2iJVoU6JnWcimjlswA32i5OmrmPZv2P9gEVqAeH1kvlwfqKzR2dP1mPAGMqJ5o+V1vMJNQYSlJCLbwmsA+x/oj0jGbyO547Cgz4JjXAOaVoSxetVTrImoqmFCgCyIvD5xFX2uaiTjDxgbQx2p6VsUb3KGeqc6We/nu+pW4ADCvwdZARJnEciL69f7RJJ0wN+PNbWrlGPeA02XglOBcxk/qVeE63piN4xZyyDyuv/BzhXKI2JvYt1PgfZKK6RtI0Ze/6cQ6O8gK5IYP2VDv/DAv/eS8aIVSrvODexuTqHW/eYf2ZbRVHQDb3/dwFihbYeguKUEjDH8SuMNjIViTO8ZbMuDZXXKlqzHw0BwdDzsFARP7kdm3JZymx59/PHHP0f6V19Bx2oe7FcS9H9KaIXId8QBgvp1oWGM8pkS/KS736ND8kD/m4Y4HvlniTsE3aMLf5X5Oq/pgJijLxFauaCbhch8FBwaG9if5Ccgcg7bQ17TgqQYmYMhT3TETyMNUrbMkvQusix5TR8XDWeAXJ+sUNWManYpeIcGNghzm1phLpw5w4fBIgk5QCJPrmR/YkjbRt/CNlckt8kZZsKshZw4Tsc7Bh8B/RqAkaflcIRZwUW9c77r33ZEJLfJ2ZYJDY49vgMsV3U8gEf+Oc2SpusZ7vxr3941kdymrMxalviTZDf50DirBzTtRB8Oym+yzWPJ6FYyA7bBZRiRP9fI+eeA+ZCQ42Sa7a2RAcY0U04brrJCXYf+yKykp4owURPeoiTi4mzZBq4CSOTpPdEMLRfP8830cuqzTbN+KhGdSrYEcAQo2HW1yctK08U7GP3dOfXZltmeGSfiWidbmiF/6CFijHMxUJ6qEPxfCc98lOM0T8z7ktlvu8YnxNLjjJJ98HtkSFsUs/FrHYk0X1cyom+jTWLv+NMe+570rE9sv2GPu5z5+F+6EHk1VnG2yWuGmK1aL4/La8d6vd6J6SYD2ES8wSccxSOxlKqxBXAGyHMdYurIbJmzx2Zn3Ywtt99xZZ6bBBNsZwMfhlnfyOFm2934mQ/BLgmzXgZsh48vlIGpOuNSMJVdCubULgdaR69xSmLMOP9PDAdWUDggxAoAAPAxAJ0BKpABWAA+KRCGQiGhDByHUAwBQlobuDAA/gH4AZYZoF4AgAD8AP0g8gH8A/AD9AOrjVoeW/0v8ae/Stp1/8Xf27/4HzIWB+ofeX9lv810/lR+dbxJ/hf71/W/6p/gP///7vur/WP8V+EX7////8E+YF+lX9+/jP9I/zv9a////1/O/oH8wH8r/j3+f/uX///P////kZ/j/9F7Hf8F6gH8T/gH5//974m/Ys9Ar+E/3D0ov8d/ov3/+kn9nP/P/c/gK/lH80/535//8n6AP//7DX8A9RL+Aetv0A/iP4AU36OH5K55sMq+j0w0A8GbhlfcsSX1cCaCOuUnPVjjbJIYYYYYYMiW/+CmoK9gsLUVbQ3+wYBDd9q1nWBRFeRCOh1kxcRjV+Q+fdrnVcn/fPFl+fYyh0ZfW62Q7quCJfhR6IU/6lHpFxkA4bjM4kp7TSwzYwSo6VGeOcRU7Q+OcjlbYwq0JW5YWGPJcem/EIOrSngMSI8fA+P1Tji/UCruXL3Uic2hupqqNhI4MOuDp5THkZLkAAD0Ehv3MYbdYTwGHOOZChRX2NzuslCAaLYZ7exzAxcWf6lwlfAhoVCGbeJNVtTFbvvRPNlwQyPOTpLjTqUbCBFH0ITo1WVCacMzRHQsCBoY9O/Fmha8HNXZ9FAJNsJgNhRz9d9lGlqugY9K5Kp4cyFgewNgFJYARvoFoabGnuITF6NClQ4qD50o7EYPVcCMZASxBtdbIVI2DeE4y4E5RBIMlf0JDd3NXABjHSR3I0vpdgu9xCiUtKtVMrq2nbNus5HDFXKUXf/TFWHKFWlSmTl1gShvdLaFmqgQpnF0ggFjEI+iNXKrggrfC+hWejMszfRxuWPQi9yLKwfBvbNus5HDFXKUXf/TFWHKFWlSmTlzAAFrh4rehQ6qb4Dc4tPVauv2VivhPSUd4LASAzmcwPM9EAA3w/IjnOZJyh42OY7e1ywlv0pcvPhVGlA/GszvVr6DyLdpbctAuLQ0Tm9EG2EylOMBdIiTKEZwYJUyYKWJMV9CF6GUvjFJiUpBa7aRCgktyY7d5Lm3nRHdm22ZWFXCG6gYisc48IfSWE1v0EXtsfJ0B6FIhPa6RGfa4A7r7Il53jjrVx2cR478DmGhJrLZoSQ9/xBlEBkQlHRsuLTfE/8PiTcmZFon+eDsicwIpmgTfe1jf7OSgh///5DgfjOApVVaaAr+uGWiixYrA7rSB4mJqLwi6JjhJ1FIOePoSB0G1YkDReLl4RbR+HSi6Rm2ML3NsSbNNddN3jNJ4V+n/zkimvmxVZGaAEq5qzpTqxbXgJ1bhzUJ62xE49Y0JeRvhhjQ3jQKF5k5FBDfEF4Mzt7L4a6z+HJeTV/yq4qqSSrwbPQaW1+V3lgOw80dxdlQ3XbAgk5LheDLtcxLS677l+Io48tID1U7XosLmGROKozttfb8Oky3C5K4S0MnLHuDbt3c1cAGLQP9u5cB8nRFwCIqN6253MDFv4pfaWK9B6kgmR1wl14n4BeW/Uxy5dWyWY/9f//85qZX+6ja3aL67CVBnImZQX89nwHqCkj7BpJ7yaZ41A4EuH0LgMCmqn8OumXjgwJVzZt41/Crr9mGlrU5spHjQaEqWphGfDdA/t9aurHPs6l0BQdbOf8BCrMvkPBrebnZDr6t8RR8M0nZnLNi8KxcZBiPHZMpJLeC1xrekJ+h0xGxBztlKGBRT6TODlIJyvMqeCEhWAxBkJ+xHepR0O+9ypW9683c3Lmu8n5UqAhlvh6nHoGYPJCfit8xQTURWQYQhf5Ys0Oi3T1LH5D0JWlHKz6Cu8XJJk7tvvkioZlOjGUeows/FBJtmzdJyXCgGL7fAR0fnqBDDpMmwEzgK22l6rjgL+RdMIFzhNoz4rIzRxnMlCCeJVK3HOMVoVin0E9DlxDa5kl7xjAuaJk9XxE4afzuScLKmC8n+dq1jDumGSsunwt+UHsWcYEgB2jFkPry0ekGi1o3F2uVkmDFzvlyX4BBKjBMfE+LP/dW86kbDKY5fcnKlBtJaBVFeFswwPPGq1EiVaYZj7xoEpOy9oiEgsytjZY5nFlHSPWMXEqFO+W0vD82MXTNPrbEAvXYYFHCeEUK1uM6GBQeQjVVWDLcVmS9M7kFBOrI4BLcjIxwX0LOvN0L+ExEBKdr23wy+m3DinYo6MhzlH+toVJOMEoAOJ67nhn4O/j7XfGACvB4kepHAEAoQrf6Bm4MoyOQ2T7Vb5iAn31YIvttn7gmqtC6PjAHAqh9nFGnCaGyebuwn+4nyMKuHrDRrxPMUdEhcPYFhq/ujCqEK2oea67M0zNttuPegQ8uBf95imH7jnL26Jzhgx+eKtxFy5BqOwxkWNY4EUDVTflA6epLTJX3XXm7BlNgJpjsU1SpX+POEoGEYzmD+ocfLJgnrvVHP9Tm7fdplyuz/gV1vECNcfT2CuisWUK/rA1SoclEA8yrzKiY9LZZpk++VcjUq1UyutZRWtKiVQ8KBJm1bR0L7jIMogNF0CArd6qLMry5eARnO6hbk+HqeLORtHniXRS08W2NSCBl8ik3V6FLK+HGczBdR3F/4jiGKl0loMmXnG4n2+Eb8OujAM5RDeU495P/+Hq66Z1nEePAcAR+7vd2Pl0hnmWoz4bCrvXtDQfQQ+CvIGOBrn0jiK93Fvb5acD3oo0svFR2Q1k+GloCuJJO9nf8zp/Y1RW1QCGd3hZ5Sx/gWrUDvYexk1jZvH4eTNsurtLAmYIPb97CAw3sKmsIbOIFj+v+4XdORNWOACUWZxEiBBUL1mHZsnoNEfn6yefmEGf9casTDegV7FsryQvKK6uTVCPn6oWVZ10WUgp6YvurVfz/0tB2lYenSSx81C+59t/6JERgtGo/9r9M1uVeN5/vFtww9DxxRVc9ZBHKRPbfVWTaPXdPDeMZ1XOhDEVnQEjGfTRW7Wk+gHWvmmELVlLJb5iQ+lNv74Mc0ud57i+ScXvNNdRQMNEH1V0pMgIG0xrBPhHdP8Q6PA5zMzs0UmJDUb0HtTSMM/8bKe6CF+xkMkl2j8QskAKbgVbQOxn/+45P0a/MDRZz/xC9I4zihWABDpTqUDPvPE2oyAbBIOYLy3BhPQY3e36CuiWa5ZdTQXBcf1dCDeTrDDVbbKO1TOyQ62+PtDHTbtpakeVVEfhRe8H6Jy/oRKBFxCe67sA+QHFnD+BDFmn3Zw7WLyD5Wvfu2mUfgyBZuN3ZRKgMSmFf+eeyHJKbo2WG9TqctWfF4CM1PRPH6jt60bw4wZDDUHN5LXsxWJDH67ahbfgEdc3ZVs1cZOVvZYlKmRlWBerLZWSKBFOgp51e5Wj0RDfB/qBd+M93TfooJ3ALloKMksNRRmtrbhCqQ/mMKeKT3oXZtRpCruXnZtwhkKIiRXzpQ7vK7qHs6OMXAPBH7rSoCUEoqp9BdkD9pRpOhhosYRSqkB3RTvI8srf9FrGqAXxsLA6AX58Y+MQFeUSYyNmsnHJ6tcR7qp+MVMJK1fs+0aDOAuaDnDz8oknrCdRNDLzK8px4LxlAkQLHvdqbwu81P0g5MjYmk3ZR0ZsK1KaJPwFKc3eUOfweyorryy6lhGEZp24JpeVBy+eqIFrQ2nRDBC6obiz1pwRsGYYveQyxX2OJ3I3a8SAYCQqK2AAAAANgQAAAAf7AAAAAAAAA" alt="LivWarm" style="height:26px"></div></div>
+    <div class="sl">Card Interaction Design</div>
+  </div>
+  <div class="content">
+    <p class="ey a1">How the answer cards will feel</p>
+    <h2 class="a2">Raised by default. Sinks on press.<br><span class="gt">Locks in with a pulse. Like a real button.</span></h2>
+    <div class="gl a2"></div>
+    <div class="a3" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-top:14px">
+
+      <!-- State 1 -->
+      <div>
+        <p style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;text-align:center">① Default</p>
+        <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);border-radius:16px;padding:24px 16px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,0.35),0 2px 6px rgba(0,0,0,0.2);transform:translateY(0px);cursor:pointer">
+          <div style="font-size:36px;margin-bottom:10px">🏠</div>
+          <p style="font-size:15px;font-weight:700;color:var(--white)">Detached</p>
+        </div>
+        <p class="sm" style="margin-top:10px;text-align:center">Visible shadow gives a raised, "pressable" feel. The card looks pickable before the user even hovers.</p>
+      </div>
+
+      <!-- State 2 -->
+      <div>
+        <p style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;text-align:center">② Hover</p>
+        <div style="background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);border-radius:16px;padding:24px 16px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.3),0 1px 4px rgba(0,0,0,0.15);transform:translateY(2px);cursor:pointer">
+          <div style="font-size:36px;margin-bottom:10px">🏠</div>
+          <p style="font-size:15px;font-weight:700;color:var(--white)">Detached</p>
+        </div>
+        <p class="sm" style="margin-top:10px;text-align:center">Shadow reduces, card drops 2px. Responds to cursor weight before the click. Already feels like it's being pressed.</p>
+      </div>
+
+      <!-- State 3 -->
+      <div>
+        <p style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;text-align:center">③ Active (80ms)</p>
+        <div style="background:rgba(232,69,60,0.08);border:1px solid rgba(232,69,60,0.2);border-radius:16px;padding:24px 16px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.2);transform:translateY(4px);cursor:pointer">
+          <div style="font-size:36px;margin-bottom:10px">🏠</div>
+          <p style="font-size:15px;font-weight:700;color:var(--white)">Detached</p>
+        </div>
+        <p class="sm" style="margin-top:10px;text-align:center">Shadow collapses fully. Card drops another 2px. The physical "press" moment — lasts 80ms, long enough to register on touchscreens.</p>
+      </div>
+
+      <!-- State 4 -->
+      <div>
+        <p style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;text-align:center">④ Selected</p>
+        <div style="background:rgba(232,69,60,0.15);border:2px solid var(--red);border-radius:16px;padding:24px 16px;text-align:center;box-shadow:0 4px 16px rgba(232,69,60,0.25),0 2px 6px rgba(0,0,0,0.2);transform:scale(1.02);cursor:pointer">
+          <div style="font-size:36px;margin-bottom:10px">🏠</div>
+          <p style="font-size:15px;font-weight:800;color:var(--red2)">Detached</p>
+        </div>
+        <p class="sm" style="margin-top:10px;text-align:center">Springs back with brand colour fill and border. Subtle 1.02 scale pulse confirms selection. Satisfying and definitive.</p>
+      </div>
+    </div>
+    <div class="a4 sp" style="gap:14px;margin-top:14px">
+      <div class="callout-blue">
+        <p class="ct" style="color:#4FA4FF;margin-bottom:4px">Mobile touch consideration</p>
+        <p class="sm">On touchscreens there is no true hover state — active and selected happen near-simultaneously. The active state duration is set to a minimum of 80ms in JavaScript to ensure the press feedback is perceptible before the selected state takes over. Without this, touch feels unresponsive.</p>
+      </div>
+      <div class="callout-orange">
+        <p class="ct" style="color:var(--orange);margin-bottom:4px">Scale pulse ceiling</p>
+        <p class="sm">The selection scale is capped at 1.02. Beyond that, multiple cards scaling simultaneously on a grid looks chaotic rather than confirmatory. The pulse is a signal, not a celebration — subtle is correct.</p>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- ═══ S7: THE BUILD PLAN ═══ -->
+<div class="slide amb" id="s7"><div class="si"><div class="box">
+  <div class="tb a1">
+    <div class="tb-l"><div class="ll"><img src="data:image/webp;base64,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" alt="LivWarm" style="height:26px"></div></div>
+    <div class="sl">Technical Build Plan</div>
+  </div>
+  <div class="content">
+    <p class="ey a1">How we build it</p>
+    <h2 class="a2">React SPA in VS Code with Claude Code.<br><span class="gt">Token-efficient. Files on your machine.</span></h2>
+    <div class="gl a2"></div>
+    <div class="a3 sp" style="gap:16px;margin-top:10px">
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <p style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:2px">Architecture</p>
+        <div class="card">
+          <p class="ct" style="margin-bottom:4px">Single React app, four products via routing</p>
+          <p class="sm">One codebase in the <span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.8)">livwarm-quotes</span> folder. URL parameter (<span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.8)">?product=solar</span>) controls which flow loads. Shared components (card, progress bar, address lookup, finance calculator) used across all four products. No duplication.</p>
+        </div>
+        <div class="card">
+          <p class="ct" style="margin-bottom:4px">Pricing via JSON — manageable without code</p>
+          <p class="sm">All product pricing, panel counts, battery options and tier definitions live in a <span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.8)">pricing.json</span> file derived from the spreadsheets. Prices change without touching the React code — just update the JSON. Can be extended to a simple spreadsheet-to-JSON export workflow.</p>
+        </div>
+        <div class="card">
+          <p class="ct" style="margin-bottom:4px">WordPress deployment via Code Snippets plugin</p>
+          <p class="sm">The React app builds to a single JS bundle. A WordPress page uses a <span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.8)">&lt;div id="livwarm-quote"&gt;&lt;/div&gt;</span> mount point. The bundle is enqueued via the Code Snippets plugin. No theme editing, no FTP required for updates.</p>
+        </div>
+        <div class="card">
+          <p class="ct" style="margin-bottom:4px">Payaca integration on submission</p>
+          <p class="sm">On form submission, a POST request fires to Payaca via their OpenAPI (Scale plan) or via a Zapier webhook (lower plans). Lead arrives in Payaca with full quote detail — product selected, tier, price, property info — not just contact fields.</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <p style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:2px">Session workflow</p>
+        <div class="callout-orange">
+          <p class="ct" style="color:var(--orange);margin-bottom:4px">Work in short, focused sessions</p>
+          <p class="sm">Each Claude session has one clear deliverable — qualification steps, quote screen, pricing logic, Payaca integration. Complete it, save to disk, end the session. This keeps token usage low and code quality high. Long sessions degrade context and produce errors.</p>
+        </div>
+        <div class="callout-blue">
+          <p class="ct" style="color:#4FA4FF;margin-bottom:4px">Master code lives on your machine — not in chat</p>
+          <p class="sm">Claude Code in VS Code reads and writes files directly. You never paste large code blocks into chat. At the start of each session, Claude Code reads only the relevant file section. Token cost per edit is a fraction of a full-file chat edit.</p>
+        </div>
+        <div class="callout-green">
+          <p class="ct" style="color:#22c55e;margin-bottom:4px">This Project carries the context</p>
+          <p class="sm">Brand assets, pricing data, flow spec and session handover notes live in this Claude Project. Each new session starts informed without rehashing decisions already made. No token cost for re-explaining the brief.</p>
+        </div>
+        <div class="card">
+          <p class="ct" style="margin-bottom:4px">Build order — solar first, then template for the rest</p>
+          <p class="sm">Solar is the most complex flow and the commercial priority. Once it's built and deployed, the EV, heat pump and boiler flows reuse the same component library, card interaction system, address lookup and finance calculator. The last three flows are significantly faster to build than the first.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- ═══ S8: NEXT STEPS ═══ -->
+<div class="slide amb" id="s8"><div class="si"><div class="box">
+  <div class="tb a1">
+    <div class="tb-l"><div class="ll"><img src="data:image/webp;base64,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" alt="LivWarm" style="height:26px"></div></div>
+    <div class="sl">What We Need to Start</div>
+  </div>
+  <div class="content">
+    <p class="ey a1">Immediate next steps</p>
+    <h2 class="a2">Everything is ready to build.<br><span class="gt">Two things needed before the first session.</span></h2>
+    <div class="gl a2"></div>
+    <div class="a3 sp" style="gap:16px;margin-top:12px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <p style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:2px">Before the first build session</p>
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div class="num-badge">1</div>
+            <div>
+              <p class="ct">Solar pricing spreadsheet</p>
+              <p class="sm">Upload the spreadsheet to this Project. It will be converted to a <span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.8)">pricing.json</span> file that drives all dynamic price calculations in the app. Without this, product recommendation logic cannot be built.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div class="num-badge">2</div>
+            <div>
+              <p class="ct">Payaca plan confirmation</p>
+              <p class="sm">Confirm whether Payaca is on a Scale plan (direct OpenAPI integration) or a lower plan (Zapier webhook route). This determines the submission architecture on the final step of the flow.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div class="num-badge" style="background:rgba(255,255,255,.15)">3</div>
+            <div>
+              <p class="ct">Claude Code installed in VS Code</p>
+              <p class="sm">Extension installed, signed in with this Anthropic account, and the <span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.8)">livwarm-quotes</span> folder open. Already in progress — confirm when ready.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <p style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px">Session 1 deliverable</p>
+        <div class="callout-green">
+          <p class="ct" style="color:#22c55e;margin-bottom:6px">A working solar flow in the browser</p>
+          <p class="sm">Session 1 builds the complete qualification steps — homeowner/landlord, property type, roof type, electricity usage (with national average fallback and help modal), battery placement, and EV ownership — with full LivWarm branding, the correct card interaction states, and the answer breadcrumb trail. No pricing logic yet — that comes in session 2 once the spec is confirmed from the spreadsheet.</p>
+        </div>
+        <div class="callout-blue">
+          <p class="ct" style="color:#4FA4FF;margin-bottom:6px">Session 2 — quote screen and pricing</p>
+          <p class="sm">Postcode lookup, satellite map confirmation, and the full redesigned quote screen — recommended package, savings numbers above the fold, live-updating tier selector, trust bar. Pricing logic wired from the JSON file.</p>
+        </div>
+        <div class="callout-orange">
+          <p class="ct" style="color:var(--orange);margin-bottom:6px">Session 3 — commitment, contact, confirmation</p>
+          <p class="sm">Upsell modal (BUS grant + panel upgrade + warranty), contact details screen, date picker, confirmation page with QR code property photo prompt, and Payaca submission. GTM events on key milestones.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+</div><!-- /deck -->
+
+<!-- ═══ NAVIGATION ═══ -->
+<nav class="nav" id="nav">
+  <button class="nb" id="prevBtn" onclick="go(-1)">&#8592;</button>
+  <div class="nd" id="dots"></div>
+  <button class="nb" id="nextBtn" onclick="go(1)">&#8594;</button>
+  <span class="nc" id="counter">1 / 8</span>
+</nav>
+
+<script>
+const TOTAL = 8;
+let cur = 0;
+const slides = Array.from({length: TOTAL}, (_, i) => document.getElementById('s' + (i + 1)));
+const dotsEl = document.getElementById('dots');
+const counter = document.getElementById('counter');
+for (let i = 0; i < TOTAL; i++) {
+  const d = document.createElement('span');
+  d.className = 'ndot' + (i === 0 ? ' active' : '');
+  d.addEventListener('click', () => goTo(i));
+  dotsEl.appendChild(d);
+}
+function goTo(n) {
+  slides[cur].classList.remove('active');
+  dotsEl.children[cur].classList.remove('active');
+  cur = (n + TOTAL) % TOTAL;
+  slides[cur].classList.add('active');
+  dotsEl.children[cur].classList.add('active');
+  counter.textContent = (cur + 1) + ' / ' + TOTAL;
+  const els = slides[cur].querySelectorAll('.a1,.a2,.a3,.a4,.a5,.a6');
+  els.forEach(el => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; });
+}
+function go(dir) { goTo(cur + dir); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
+});
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+}, {passive:true});
+</script>
+</body>
+</html>
